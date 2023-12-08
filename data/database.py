@@ -15,7 +15,8 @@ class DataBase:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name VARCHAR(20),
                 age INTEGER(2),
-                city VARCHAR(255),
+                latitude REAL(10),
+                longitude REAL(10),
                 sex INTEGER(1),
                 look_for INTEGER(1),
                 about TEXT(500),
@@ -34,11 +35,13 @@ class DataBase:
                 INSERT INTO users(
                     name,
                     age,
-                    city,
+                    latitude,
+                    longitude,
                     sex,
                     look_for,
-                    about
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                    about,
+                    photo
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 data
             )
@@ -46,5 +49,5 @@ class DataBase:
 
             x = await cursor.execute("SELECT * FROM users")
             y = await x.fetchall()
-            for i in y:
+            for i in y[:-1]:
                 print(i)
