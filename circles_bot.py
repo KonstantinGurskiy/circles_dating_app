@@ -13,10 +13,11 @@ async def main() -> None:
     dp = Dispatcher()
     db = DataBase("users_db.db", "users")
 
-    # await db.create_table()
+    await db.create_table()
 
     dp.include_routers(
-        handlers.start.router
+        handlers.start.router,
+        handlers.survey.router
     )
 
     await bot.delete_webhook(drop_pending_updates=True)

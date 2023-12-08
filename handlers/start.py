@@ -10,4 +10,4 @@ router = Router()
 @router.message(CommandStart())
 async def start(message: Message, db: DataBase):
     print(db.name)
-    await message.answer("Выберите действие:", reply_markup=main)
+    await message.answer("Привет Викусик! Выберите действие:", reply_markup=main)
