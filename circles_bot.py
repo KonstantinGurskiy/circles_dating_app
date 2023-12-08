@@ -6,7 +6,7 @@ import handlers
 from config_reader import config
 from data.database import DataBase
 
-
+# slava ukraine
 async def main() -> None:
     bot = Bot(config.bot_token.get_secret_value())
 
