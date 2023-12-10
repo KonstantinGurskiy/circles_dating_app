@@ -1,10 +1,10 @@
 from aiogram import Router, F
-from aiogram.types import Message, location
+from aiogram.types import Message, location, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 
-from keyboards.builders import form_btn
+from keyboards.builders import form_btn, form_loc_req
 
 from data.database import DataBase
 from utils.states import Form
@@ -32,31 +32,23 @@ async def form_age(message: Message, state: FSMContext):
         await state.set_state(Form.longitude)
         await message.answer(
                 "Теперь send ur location",
-                reply_markup=form_btn(["sendlocation"])
+                reply_markup=ReplyKeyboardMarkup(keyboard = [[KeyboardButton(text="sendlocation", request_location = True)]], resize_keyboard = True, one_time_keyboard=True)
         )
     else:
         await message.answer("Попробуй еще раз!")
 
 
 
-@router.message(Form.longitude, F.text.casefold().in_(["sendlocation"]))
+@router.message(Form.longitude)
 async def form_longitude(message: Message, state: FSMContext):
-    print("ya zdes!!!")
-    lat = message.location.Location.latitude
-    lon = message.location.Location.longitude
+    lat = message.location.latitude
+    lon = message.location.longitude
     await state.update_data(latitude=lat)
     await state.update_data(longitude=lon)
     print(lat)
     print(lon)
-    #     MyClass.location = None
-    #     await bot.send_message(message.chat.id, f"Ваша геолокация: {lat}, {lon}")
-    # else:
-    #     # сообщение без геолокации
-    #     await bot.send_message(message.chat.id, "Пожалуйста, отправьте свою геолокацию с помощью кнопки.")
 
-@router.message(Form.city)
-async def form_city(message: Message, state: FSMContext):
-    await state.update_data(city=message.text)
+
     await state.set_state(Form.sex)
     await message.answer(
             "Choose your gender",
