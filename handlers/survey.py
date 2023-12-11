@@ -2,6 +2,7 @@ from aiogram import Router, F
 from aiogram.types import Message, location, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
+from aiogram.methods.send_video_note import SendVideoNote
 
 
 from keyboards.builders import form_btn, form_loc_req
@@ -9,6 +10,7 @@ from keyboards.builders import form_btn, form_loc_req
 from data.database import DataBase
 from utils.states import Form
 from utils.city import check
+from utils.coord2loco import get_place
 
 router = Router()
 
@@ -45,72 +47,55 @@ async def form_longitude(message: Message, state: FSMContext):
     lon = message.location.longitude
     await state.update_data(latitude=lat)
     await state.update_data(longitude=lon)
-    print(lat)
-    print(lon)
 
 
-    await state.set_state(Form.sex)
+    await state.set_state(Form.target)
     await message.answer(
-            "Choose your gender",
-            reply_markup=form_btn(["boy", "girl"])
+            "Choose your target",
+            reply_markup=form_btn(["хочу позвать", "хочу чтобы позвали"])
     )
 
 
-
-@router.message(Form.sex, F.text.casefold().in_(["boy", "girl"]))
-async def form_sex(message: Message, state: FSMContext):
-    await state.update_data(sex=message.text)
-    await state.set_state(Form.look_for)
-    await message.answer(
-        "Who are u lookin 4?",
-        reply_markup=form_btn(["boys", "girls", "both"])
-    )
-
-@router.message(Form.sex)
-async def incorrect_form_sex(message: Message, state: FSMContext):
-    await message.answer("Choose from list")
-
-
-@router.message(Form.look_for, F.text.casefold().in_(["boys", "girls", "both"]))
-async def form_look_for(message: Message, state: FSMContext):
-    await state.update_data(look_for=message.text)
+@router.message(Form.target, F.text.casefold().in_(["хочу позвать", "хочу чтобы позвали"]))
+async def form_target(message: Message, state: FSMContext):
+    await state.update_data(target=message.text)
     await state.set_state(Form.about)
     await message.answer("tell about urself")
 
-@router.message(Form.look_for)
-async def incorrect_form_look_for(message: Message, state: FSMContext):
-    await message.answer("choose your variant")
 
 @router.message(Form.about)
 async def form_about(message: Message, state: FSMContext):
     await state.update_data(about=message.text)
     await state.set_state(Form.photo)
-    await message.answer("Send photo")
+    await message.answer("Send circle")
 
 
-@router.message(Form.photo, F.photo)
+@router.message(Form.photo, F.video_note)
 async def form_photo(message: Message, state: FSMContext, db: DataBase):
-    photo_file_id = message.photo[-1].file_id
-    await state.update_data(photo=photo_file_id)
-    print(photo_file_id)
+    video_note_file_id = message.video_note.file_id
+    await state.update_data(photo=video_note_file_id)
     data = await state.get_data()
     await state.clear()
-    print(data)
 
     frm_text = []
     [
         frm_text.append(value)
         for _, value in data.items()
     ]
-    print(frm_text)
+    # print(frm_text)
     await db.insert(frm_text)
 
-    await message.answer_photo(
-        photo_file_id,
-        "\n".join(list(map(str, frm_text)))
-    )
+    await message.answer_video_note(
+        video_note_file_id,
+        # "\n".join(list(map(str, frm_text)))
+    )# Вывод словаря в одну строку
+
+    await message.answer("\n".join(f"{key}: {str(value)}" for key, value in data.items() if key not in ["latitude", "longitude", "photo"]) + "\nUr location: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"])).split(',')[1:-1]))
+
+    # print(get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"]))
 
 
-@router.message(Form.photo, ~F.photo)
+
+@router.message(Form.photo, ~F.video_note)
 async def form_photo(message: Message, state: FSMContext):
-    await message.answer("Отправь фото!")
+    await message.answer("Отправь кружок!")

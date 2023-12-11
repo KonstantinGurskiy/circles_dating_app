@@ -17,8 +17,7 @@ class DataBase:
                 age INTEGER(2),
                 latitude REAL(10),
                 longitude REAL(10),
-                sex INTEGER(1),
-                look_for INTEGER(1),
+                target INTEGER(1),
                 about TEXT(500),
                 photo VARCHAR(255)
             )
@@ -37,11 +36,10 @@ class DataBase:
                     age,
                     latitude,
                     longitude,
-                    sex,
-                    look_for,
+                    target,
                     about,
                     photo
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 data
             )
@@ -49,5 +47,5 @@ class DataBase:
 
             x = await cursor.execute("SELECT * FROM users")
             y = await x.fetchall()
-            for i in y[:-1]:
-                print(i)
+            # for i in y[:-1]:
+                # print(i)
