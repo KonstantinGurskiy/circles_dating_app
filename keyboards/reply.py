@@ -4,7 +4,7 @@ main = ReplyKeyboardMarkup(
     keyboard=[
         [
             KeyboardButton(text="/form"),
-            KeyboardButton(text="Статистика")
+            KeyboardButton(text="/go!")
         ]
     ],
     resize_keyboard=True,

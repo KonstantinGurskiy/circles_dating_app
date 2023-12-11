@@ -1,5 +1,5 @@
 import aiosqlite
-
+import pandas as pd
 
 class DataBase:
 
@@ -13,13 +13,14 @@ class DataBase:
             query = """
             CREATE TABLE IF NOT EXISTS users(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER(50),
+                likes TEXT(9999),
+                liked TEXT(9999),
                 name VARCHAR(20),
-                age INTEGER(2),
                 latitude REAL(10),
                 longitude REAL(10),
                 target INTEGER(1),
-                about TEXT(500),
-                photo VARCHAR(255)
+                circle VARCHAR(255)
             )
             """
 
@@ -29,23 +30,42 @@ class DataBase:
     async def insert(self, data) -> None:
         async with aiosqlite.connect(self.name) as db:
             cursor = await db.cursor()
-            await cursor.execute(
+            # Проверяем, существует ли запись с user_id
+            await cursor.execute("SELECT * FROM users WHERE user_id="+ str(data[0]))
+            existing_record = await cursor.fetchone()
+
+            if existing_record:
+                # Если запись существует, обновляем её
+                await cursor.execute("UPDATE users SET user_id=?, likes=?, liked=?, name=?, latitude=?, longitude=?, target=?, circle=? WHERE user_id="+ str(data[0]), data)
+            else:
+                # Если запись не существует, вставляем новую запись
+                await cursor.execute(
                 """
                 INSERT INTO users(
+                    user_id,
+                    likes,
+                    liked,
                     name,
-                    age,
                     latitude,
                     longitude,
                     target,
-                    about,
-                    photo
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    circle
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 data
             )
+
             await db.commit()
 
-            x = await cursor.execute("SELECT * FROM users")
-            y = await x.fetchall()
-            # for i in y[:-1]:
-                # print(i)
+
+
+
+
+    async def read_table(self):
+        async with aiosqlite.connect(self.name) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT * FROM users")
+            rows = [list(row) for row in await cursor.fetchall()]
+            column_names = ['id', 'user_id', 'likes', 'liked', 'name', 'latitude', 'longitude', 'target', 'circle']
+            df = pd.DataFrame(rows, columns=column_names)
+            return df
