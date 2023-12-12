@@ -10,3 +10,4 @@ class Form(StatesGroup):
     circle = State()
     likes = State()
     liked = State()
+    already_seen = State()

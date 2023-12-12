@@ -19,6 +19,7 @@ async def my_form(message: Message, state: FSMContext):
     await state.update_data(user_id = message.from_user.id)
     await state.update_data(liked = " ")
     await state.update_data(likes = " ")
+    await state.update_data(already_seen = " ")
     await state.set_state(Form.name)
     await message.answer("Как тебя зовут?",
                          reply_markup=form_btn(message.from_user.first_name))
@@ -94,7 +95,7 @@ async def form_photo(message: Message, state: FSMContext, db: DataBase):
         frm_text.append(value)
         for _, value in data.items()
     ]
-
+    print(frm_text)
     await db.insert(frm_text)
 
     await message.answer("Твой профиль:")
@@ -103,7 +104,7 @@ async def form_photo(message: Message, state: FSMContext, db: DataBase):
         video_note_file_id,
     )
 
-    await message.answer("\n".join(f"{key}: {str(value)}" for key, value in data.items() if key not in ["latitude", "longitude", "circle", "user_id", "likes", "liked", "about", "age"]) + "\Your location: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"])).split(',')[-4:-1]), reply_markup=form_btn(["/form", "/go!"]))
+    await message.answer("Имя: " + data["name"] + "\nЦель: " + data["target"] + "\nТы находишься: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"])).split(',')[-4:-1]), reply_markup=form_btn(["/form", "/go"]))
 
 
 @router.message(Form.circle, ~F.video_note)
