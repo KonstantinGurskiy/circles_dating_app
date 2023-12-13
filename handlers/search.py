@@ -13,15 +13,23 @@ router = Router()
 
 @router.message(Command("go", "like", "dislike"))
 async def search_people(message: Message, state: FSMContext, db: DataBase):
-    contr_person = await closest_person(message.from_user.id, db)
-    if isinstance(contr_person, int):
-        await message.answer("Пользователи кончились", reply_markup=form_btn(["/form", "/go"]))
+    print(message.text)
+    df = await db.read_table()
+    if(message.from_user.id in df['user_id'].values):
+        contr_person = await closest_person(message.from_user.id, df)
+        changed_row = df[df['user_id'] == message.from_user.id].iloc[0].values.flatten().tolist()[1:]
+        if isinstance(contr_person, int):
+            await message.answer("Пользователи кончились", reply_markup=form_btn(["/form", "/go"]))
+        else:
+            await message.answer_video_note(
+            contr_person["circle"],
+            )
+            await message.answer("Имя: " + contr_person["name"] + "\nЦель: " + contr_person["target"] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", contr_person["latitude"], contr_person["longitude"])).split(',')[-4:-1]), reply_markup=form_btn(["/like", "/dislike"]))
+            changed_row[3] += ', ' + str(contr_person['user_id'])
+            changed_row[0] = str(changed_row[0])
+            await db.insert(changed_row)
     else:
-        await message.answer_video_note(
-        contr_person["circle"],
-        )
-        await message.answer("Имя: " + contr_person["name"] + "\nЦель: " + contr_person["target"] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", contr_person["latitude"], contr_person["longitude"])).split(',')[-4:-1]), reply_markup=form_btn(["/like", "/dislike"]))
-        print(message.text)
+        await message.answer("Мы не нашли твою анкету. Заполни ее, пожалуйста:", reply_markup=form_btn(["/form"]))
 
 
 

@@ -16,7 +16,7 @@ router = Router()
 
 @router.message(Command("form"))
 async def my_form(message: Message, state: FSMContext):
-    await state.update_data(user_id = message.from_user.id)
+    await state.update_data(user_id = str(message.from_user.id))
     await state.update_data(liked = " ")
     await state.update_data(likes = " ")
     await state.update_data(already_seen = " ")
@@ -95,7 +95,6 @@ async def form_photo(message: Message, state: FSMContext, db: DataBase):
         frm_text.append(value)
         for _, value in data.items()
     ]
-    print(frm_text)
     await db.insert(frm_text)
 
     await message.answer("Твой профиль:")

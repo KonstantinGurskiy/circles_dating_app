@@ -13,7 +13,7 @@ class DataBase:
             query = """
             CREATE TABLE IF NOT EXISTS users(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER(50),
+                user_id INTEGER(10),
                 likes TEXT(99999),
                 liked TEXT(99999),
                 already_seen TEXT(99999),
@@ -34,7 +34,6 @@ class DataBase:
             # Проверяем, существует ли запись с user_id
             await cursor.execute("SELECT * FROM users WHERE user_id="+ str(data[0]))
             existing_record = await cursor.fetchone()
-            print(data)
             if existing_record:
                 # Если запись существует, обновляем её
                 await cursor.execute("UPDATE users SET user_id=?, likes=?, liked=?, already_seen=?, name=?, latitude=?, longitude=?, target=?, circle=? WHERE user_id="+ str(data[0]), data)
