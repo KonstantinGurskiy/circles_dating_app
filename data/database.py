@@ -21,7 +21,8 @@ class DataBase:
                 latitude REAL(10),
                 longitude REAL(10),
                 target INTEGER(1),
-                circle VARCHAR(255)
+                circle VARCHAR(255),
+                username VARCHAR(255)
             )
             """
 
@@ -36,7 +37,7 @@ class DataBase:
             existing_record = await cursor.fetchone()
             if existing_record:
                 # Если запись существует, обновляем её
-                await cursor.execute("UPDATE users SET user_id=?, likes=?, liked=?, already_seen=?, name=?, latitude=?, longitude=?, target=?, circle=? WHERE user_id="+ str(data[0]), data)
+                await cursor.execute("UPDATE users SET user_id=?, likes=?, liked=?, already_seen=?, name=?, latitude=?, longitude=?, target=?, circle=?, username=? WHERE user_id="+ str(data[0]), data)
             else:
                 # Если запись не существует, вставляем новую запись
                 await cursor.execute(
@@ -50,8 +51,9 @@ class DataBase:
                     latitude,
                     longitude,
                     target,
-                    circle
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    circle,
+                    username
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 data
             )
@@ -67,6 +69,6 @@ class DataBase:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM users")
             rows = [list(row) for row in await cursor.fetchall()]
-            column_names = ['id', 'user_id', 'likes', 'liked', 'already_seen', 'name', 'latitude', 'longitude', 'target', 'circle']
+            column_names = ['id', 'user_id', 'likes', 'liked', 'already_seen', 'name', 'latitude', 'longitude', 'target', 'circle', 'username']
             df = pd.DataFrame(rows, columns=column_names)
             return df

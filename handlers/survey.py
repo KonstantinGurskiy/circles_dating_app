@@ -87,6 +87,7 @@ async def form_photo(message: Message, state: FSMContext):
 async def form_photo(message: Message, state: FSMContext, db: DataBase):
     video_note_file_id = message.video_note.file_id
     await state.update_data(circle=video_note_file_id)
+    await state.update_data(username = message.from_user.username)
     data = await state.get_data()
     await state.clear()
 
@@ -95,6 +96,7 @@ async def form_photo(message: Message, state: FSMContext, db: DataBase):
         frm_text.append(value)
         for _, value in data.items()
     ]
+
     await db.insert(frm_text)
 
     await message.answer("Твой профиль:")

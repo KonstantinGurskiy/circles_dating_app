@@ -11,3 +11,4 @@ class Form(StatesGroup):
     likes = State()
     liked = State()
     already_seen = State()
+    username = State()

@@ -2,6 +2,7 @@ from aiogram import Router, F
 from aiogram.types import Message, user
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
+from aiogram.enums import ParseMode
 
 from keyboards.builders import form_btn
 
@@ -29,10 +30,11 @@ async def search_people(message: Message, state: FSMContext, db: DataBase):
         print(matches)
         for match in matches:
             match = int(match)
+            username = df[df['user_id'] == match]['username'].iat[0]
             # print(df[df['user_id'] == match]['circle'][0])
             await message.answer_video_note(df[df['user_id'] == match]['circle'].iat[0])
-            await message.answer(df[df['user_id'] == match]['name'].iat[0])
-            await message.answer(f"It's a match!\n" + f'tg://user?id={match}>Ссылка на чат другого пользователя</a>', reply_markup=form_btn(["/like", "/dislike"]))
+            await message.answer(df[df['user_id'] == match]['name'].iat[0], reply_markup=form_btn(["/like", "/dislike"]))
+            await message.answer(f"It's a match!\n<a href='t.me/{username}'>Ссылка на чат другого пользователя</a>", parse_mode=ParseMode.HTML)
 
 
 #blok poiska
@@ -52,6 +54,5 @@ async def search_people(message: Message, state: FSMContext, db: DataBase):
             await db.insert(changed_row)
     else:
         await message.answer("Мы не нашли твою анкету. Заполни ее, пожалуйста:", reply_markup=form_btn(["/form"]))
-
 
 
