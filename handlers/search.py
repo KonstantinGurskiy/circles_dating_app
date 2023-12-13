@@ -21,14 +21,22 @@ async def search_people(message: Message, state: FSMContext, db: DataBase):
     if last_seen_id != " ":
         if(message.text == "/like"):
             likes_to_write = await write_likes(df, message.from_user.id, int(last_seen_id))
-            print(likes_to_write)
             await db.insert(likes_to_write[0])
             await db.insert(likes_to_write[1])
-        await check_match(message.from_user.id)
+        df = await db.read_table()
+        matches, my_row = await check_match(df, message.from_user.id, db)
+        await db.insert(my_row)
+        print(matches)
+        for match in matches:
+            match = int(match)
+            # print(df[df['user_id'] == match]['circle'][0])
+            await message.answer_video_note(df[df['user_id'] == match]['circle'].iat[0])
+            await message.answer(df[df['user_id'] == match]['name'].iat[0])
+            await message.answer(f"It's a match!\n" + f'tg://user?id={match}>Ссылка на чат другого пользователя</a>', reply_markup=form_btn(["/like", "/dislike"]))
 
 
 #blok poiska
-
+    df = await db.read_table()
     if(message.from_user.id in df['user_id'].values):
         contr_person = await closest_person(message.from_user.id, df)
         changed_row = df[df['user_id'] == message.from_user.id].iloc[0].values.flatten().tolist()[1:]

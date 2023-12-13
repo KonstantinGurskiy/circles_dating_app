@@ -4,6 +4,17 @@ import pandas as pd
 import geopy.distance
 from data.database import DataBase
 
+def subtract_lists(list1, list2):
+    for item in list2:
+        while item in list1:
+            list1.remove(item)
+    return list1
+
+def list_to_string_with_prefix(my_list, prefix=" "):
+    result_string = prefix + ", ".join(map(str, my_list))
+    return result_string
+
+
 
 async def closest_person(my_id: int, df):
     target_value = str(df[df['user_id'] == my_id]['target'].values[0])
@@ -22,8 +33,6 @@ async def closest_person(my_id: int, df):
     if min_idx==-1:
         return min_idx
     else:
-        # print(min_idx)
-        # print(my_users.values[min_idx])
         return my_users.iloc[min_idx]
 
 async def write_likes(df, my_id: int, her_id: int):
@@ -36,5 +45,20 @@ async def write_likes(df, my_id: int, her_id: int):
     return [list(my_data), list(her_data)]
 
 
-async def check_match(my_id: int):
-    ...
+async def check_match(df, my_id: int, db):
+    my_data = df[df['user_id'] == my_id].values[0][1:]
+    my_data[0] = str(my_data[0])
+    likes = my_data[1].split(', ')[1:]
+    liked = my_data[2].split(', ')[1:]
+    matches = 0
+    matches = list(set(likes) & set(liked))
+    if matches != 0:
+        likes = subtract_lists(likes, matches)
+        liked = subtract_lists(liked, matches)
+        my_data[1] = list_to_string_with_prefix(likes)
+        my_data[2] = list_to_string_with_prefix(liked)
+
+    return matches, my_data
+
+
+
