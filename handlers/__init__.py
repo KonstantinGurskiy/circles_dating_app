@@ -4,3 +4,5 @@ from . import (
         search,
         bot_messages
 )
+
+last_person_id = 0

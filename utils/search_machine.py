@@ -26,4 +26,15 @@ async def closest_person(my_id: int, df):
         # print(my_users.values[min_idx])
         return my_users.iloc[min_idx]
 
+async def write_likes(df, my_id: int, her_id: int):
+    my_data = df[df['user_id'] == my_id].values[0][1:]
+    her_data = df[df['user_id'] == her_id].values[0][1:]
+    my_data[0] = str(my_data[0])
+    her_data[0] = str(her_data[0])
+    my_data[1] += ', ' + str(her_id)
+    her_data[2] += ', ' + str(my_id)
+    return [list(my_data), list(her_data)]
 
+
+async def check_match(my_id: int):
+    ...

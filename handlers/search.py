@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 from keyboards.builders import form_btn
 
-from utils.search_machine import closest_person
+from utils.search_machine import closest_person, write_likes, check_match
 from utils.coord2loco import get_place
 from data.database import DataBase
 
@@ -13,8 +13,22 @@ router = Router()
 
 @router.message(Command("go", "like", "dislike"))
 async def search_people(message: Message, state: FSMContext, db: DataBase):
-    print(message.text)
     df = await db.read_table()
+
+#blok matchinga
+
+    last_seen_id = df[df['user_id'] == message.from_user.id]['already_seen'].values[0].split(', ')[-1]
+    if last_seen_id != " ":
+        if(message.text == "/like"):
+            likes_to_write = await write_likes(df, message.from_user.id, int(last_seen_id))
+            print(likes_to_write)
+            await db.insert(likes_to_write[0])
+            await db.insert(likes_to_write[1])
+        await check_match(message.from_user.id)
+
+
+#blok poiska
+
     if(message.from_user.id in df['user_id'].values):
         contr_person = await closest_person(message.from_user.id, df)
         changed_row = df[df['user_id'] == message.from_user.id].iloc[0].values.flatten().tolist()[1:]
