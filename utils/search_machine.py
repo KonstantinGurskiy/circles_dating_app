@@ -40,16 +40,17 @@ async def write_likes(df, my_id: int, her_id: int):
     her_data = df[df['user_id'] == her_id].values[0][1:]
     my_data[0] = str(my_data[0])
     her_data[0] = str(her_data[0])
-    my_data[1] += ', ' + str(her_id)
-    her_data[2] += ', ' + str(my_id)
+    my_data[1] += ' ' + str(her_id)
+    print(my_data)
+    her_data[2] += ' ' + str(my_id)
     return [list(my_data), list(her_data)]
 
 
 async def check_match(df, my_id: int, db):
     my_data = df[df['user_id'] == my_id].values[0][1:]
     my_data[0] = str(my_data[0])
-    likes = my_data[1].split(', ')[1:]
-    liked = my_data[2].split(', ')[1:]
+    likes = my_data[1].split(' ')[1:]
+    liked = my_data[2].split(' ')[1:]
     matches = 0
     matches = list(set(likes) & set(liked))
     if matches != 0:
