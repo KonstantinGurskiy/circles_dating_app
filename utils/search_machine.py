@@ -11,7 +11,7 @@ def subtract_lists(list1, list2):
     return list1
 
 def list_to_string_with_prefix(my_list, prefix=" "):
-    result_string = prefix + ", ".join(map(str, my_list))
+    result_string = prefix + " ".join(map(str, my_list))
     return result_string
 
 
@@ -41,7 +41,7 @@ async def write_likes(df, my_id: int, her_id: int):
     my_data[0] = str(my_data[0])
     her_data[0] = str(her_data[0])
     my_data[1] += ' ' + str(her_id)
-    print(my_data)
+    # print(my_data)
     her_data[2] += ' ' + str(my_id)
     return [list(my_data), list(her_data)]
 

@@ -24,21 +24,25 @@ async def search_people(message: Message, state: FSMContext, db: DataBase):
         if last_seen_id != " ":
             if(message.text == "/like"):
                 likes_to_write = await write_likes(df, message.from_user.id, int(last_seen_id))
-                print(likes_to_write)
+                # print(likes_to_write)
                 await db.insert(likes_to_write[0])
                 await db.insert(likes_to_write[1])
             df = await db.read_table()
             matches, my_row = await check_match(df, message.from_user.id, db)
             await db.insert(my_row)
-            print(matches)
-            if(matches!=['']):
+            # print(matches)
+            if '' in matches:
+                matches.remove('')
+            # print(matches)
+            if matches:
+                # print("~~~~")
                 for match in matches:
                     match = int(match)
                     username = df[df['user_id'] == match]['username'].iat[0]
                     # print(df[df['user_id'] == match]['circle'][0])
                     await message.answer_video_note(df[df['user_id'] == match]['circle'].iat[0])
                     await message.answer(df[df['user_id'] == match]['name'].iat[0], reply_markup=form_btn(["/like", "/dislike"]))
-                    await message.answer(f"It's a match!\n<a href='t.me/{username}'>Ссылка на чат другого пользователя</a>", parse_mode=ParseMode.HTML)
+                    await message.answer(f"<a href='t.me/{username}'>It's a match!</a>", parse_mode=ParseMode.HTML)
 
 
     #blok poiska
