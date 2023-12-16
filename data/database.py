@@ -17,10 +17,14 @@ class DataBase:
                 likes TEXT(99999),
                 liked TEXT(99999),
                 already_seen TEXT(99999),
+                active INTEGER(1),
+                time TEXT(8),
                 name VARCHAR(20),
                 latitude REAL(10),
                 longitude REAL(10),
                 target INTEGER(1),
+                gender TEXT(10),
+                look_for TEXT(10),
                 circle VARCHAR(255),
                 username VARCHAR(255)
             )
@@ -37,7 +41,7 @@ class DataBase:
             existing_record = await cursor.fetchone()
             if existing_record:
                 # Если запись существует, обновляем её
-                await cursor.execute("UPDATE users SET user_id=?, likes=?, liked=?, already_seen=?, name=?, latitude=?, longitude=?, target=?, circle=?, username=? WHERE user_id="+ str(data[0]), data)
+                await cursor.execute("UPDATE users SET user_id=?, likes=?, liked=?, already_seen=?, active=?, time=?, name=?, latitude=?, longitude=?, target=?, gender=?, look_for=?, circle=?, username=? WHERE user_id="+ str(data[0]), data)
             else:
                 # Если запись не существует, вставляем новую запись
                 await cursor.execute(
@@ -47,13 +51,17 @@ class DataBase:
                     likes,
                     liked,
                     already_seen,
+                    active,
+                    time,
                     name,
                     latitude,
                     longitude,
                     target,
+                    gender,
+                    look_for,
                     circle,
                     username
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 data
             )
@@ -69,6 +77,6 @@ class DataBase:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM users")
             rows = [list(row) for row in await cursor.fetchall()]
-            column_names = ['id', 'user_id', 'likes', 'liked', 'already_seen', 'name', 'latitude', 'longitude', 'target', 'circle', 'username']
+            column_names = ['id', 'user_id', 'gender', 'look_for', 'likes', 'liked', 'already_seen', 'name', 'latitude', 'longitude', 'target', 'circle', 'username', 'active']
             df = pd.DataFrame(rows, columns=column_names)
             return df

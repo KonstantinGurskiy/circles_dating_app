@@ -12,7 +12,7 @@ from data.database import DataBase
 
 router = Router()
 
-@router.message(Command("go", "like", "dislike"))
+@router.message(Command("like", "dislike"))
 async def search_people(message: Message, state: FSMContext, db: DataBase):
     df = await db.read_table()
     if(message.from_user.id in df['user_id'].values):

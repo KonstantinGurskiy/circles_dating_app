@@ -4,6 +4,8 @@ from aiogram.fsm.state import StatesGroup, State
 class Form(StatesGroup):
     user_id = State()
     name = State()
+    gender = State()
+    look_for = State()
     latitude = State()
     longitude = State()
     target = State()
@@ -12,3 +14,4 @@ class Form(StatesGroup):
     liked = State()
     already_seen = State()
     username = State()
+    active = State()

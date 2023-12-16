@@ -10,4 +10,4 @@ router = Router()
 @router.message(CommandStart())
 async def start(message: Message, db: DataBase):
     print(db.name)
-    await message.answer("Привет! Я бот знакомств Meeting Circles. Выбери действие:\nform -- ты еще не с нами или хочешь создать анкету заново\ngo -- начать поиск", reply_markup=main)
+    await message.answer("Привет! Меня зовут бот \n\"Круги для знакомств\".\nЗдесь ты можешь найти интересное событие или сам создать его и позвать других пользователей. \nДля начала давай создадим тебе профиль. \nНажми create", reply_markup=main)
