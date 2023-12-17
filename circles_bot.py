@@ -18,7 +18,8 @@ async def main() -> None:
     dp.include_routers(
         handlers.start.router,
         handlers.survey.router,
-        handlers.search.router
+        handlers.search.router,
+        handlers.delete.router,
     )
 
     await bot.delete_webhook(drop_pending_updates=True)

@@ -2,7 +2,7 @@ from . import (
         start,
         survey,
         search,
-        bot_messages
+        bot_messages,
+        delete
 )
 
-last_person_id = 0

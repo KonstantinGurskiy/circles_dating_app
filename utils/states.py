@@ -12,6 +12,7 @@ class Form(StatesGroup):
     circle = State()
     likes = State()
     liked = State()
-    already_seen = State()
+    already_seen_by = State()
+    already_saw = State()
     username = State()
     active = State()

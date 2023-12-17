@@ -16,7 +16,8 @@ class DataBase:
                 user_id INTEGER(10),
                 likes TEXT(99999),
                 liked TEXT(99999),
-                already_seen TEXT(99999),
+                already_saw TEXT(99999),
+                already_seen_by TEXT(99999),
                 active INTEGER(1),
                 time TEXT(8),
                 name VARCHAR(20),
@@ -41,7 +42,7 @@ class DataBase:
             existing_record = await cursor.fetchone()
             if existing_record:
                 # Если запись существует, обновляем её
-                await cursor.execute("UPDATE users SET user_id=?, likes=?, liked=?, already_seen=?, active=?, time=?, name=?, latitude=?, longitude=?, target=?, gender=?, look_for=?, circle=?, username=? WHERE user_id="+ str(data[0]), data)
+                await cursor.execute("UPDATE users SET user_id=?, likes=?, liked=?, already_saw=?, already_seen_by=?, active=?, time=?, name=?, latitude=?, longitude=?, target=?, gender=?, look_for=?, circle=?, username=? WHERE user_id="+ str(data[0]), data)
             else:
                 # Если запись не существует, вставляем новую запись
                 await cursor.execute(
@@ -50,7 +51,8 @@ class DataBase:
                     user_id,
                     likes,
                     liked,
-                    already_seen,
+                    already_saw,
+                    already_seen_by,
                     active,
                     time,
                     name,
@@ -61,10 +63,19 @@ class DataBase:
                     look_for,
                     circle,
                     username
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 data
             )
+
+            await db.commit()
+
+    async def delete_user(self, user_id) -> None:
+        async with aiosqlite.connect(self.name) as db:
+            cursor = await db.cursor()
+
+            # Удаляем пользователя по его ID
+            await cursor.execute("DELETE FROM users WHERE user_id=?", (user_id,))
 
             await db.commit()
 
@@ -77,6 +88,6 @@ class DataBase:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM users")
             rows = [list(row) for row in await cursor.fetchall()]
-            column_names = ['id', 'user_id', 'gender', 'look_for', 'likes', 'liked', 'already_seen', 'name', 'latitude', 'longitude', 'target', 'circle', 'username', 'active']
+            column_names = ['id', 'user_id', 'likes', 'liked', 'already_saw', 'already_seen_by', 'active', 'time', 'name', 'latitude', 'longitude', 'target', 'gender', 'look_for', 'circle', 'username']
             df = pd.DataFrame(rows, columns=column_names)
             return df

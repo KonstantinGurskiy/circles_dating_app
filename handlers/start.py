@@ -10,4 +10,4 @@ router = Router()
 @router.message(CommandStart())
 async def start(message: Message, db: DataBase):
     print(db.name)
-    await message.answer("Привет! Меня зовут бот \n\"Круги для знакомств\".\nЗдесь ты можешь найти интересное событие или сам создать его и позвать других пользователей. \nДля начала давай создадим тебе профиль. \nНажми create", reply_markup=main)
+    await message.answer("Привет! Меня зовут бот \n\"КРУГИ ДЛЯ ЗНАКОМСТВ\".\nЗдесь ты можешь найти интересное событие или сам создать его и позвать других пользователей. \nДля начала давай создадим тебе профиль. \nНажми create", reply_markup=main)

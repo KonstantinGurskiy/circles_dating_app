@@ -3,8 +3,10 @@ from aiogram.types import Message, location, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.methods.send_video_note import SendVideoNote
+from aiogram.methods.delete_message import DeleteMessage
 
 from datetime import datetime
+from time import sleep
 
 from keyboards.builders import form_btn, form_loc_req
 
@@ -15,12 +17,16 @@ from utils.coord2loco import get_place
 
 router = Router()
 
-@router.message(Command("create"))
+@router.message(Command("create", "edit"))
 async def my_form(message: Message, state: FSMContext):
+    temp = await message.answer("Создаю анкету...")
+    sleep(1)
+    # await bot.delete_message()
     await state.update_data(user_id = str(message.from_user.id))
     await state.update_data(liked = None)
     await state.update_data(likes = None)
-    await state.update_data(already_seen = None)
+    await state.update_data(already_saw = None)
+    await state.update_data(already_seen_by = None)
     await state.update_data(active = False)
     await state.update_data(time = datetime.now().strftime("%H:%M:%S"))
     await state.set_state(Form.name)
@@ -65,9 +71,8 @@ async def form_photo(message: Message, state: FSMContext):
 @router.message(Form.target, F.text.casefold().in_(["создать событие", "присоединиться к событию"]))
 async def form_target(message: Message, state: FSMContext):
     await state.update_data(target=message.text)
-    if(message.text == "создать событие"):
+    if(message.text == "присоединиться к событию"):
         await state.set_state(Form.gender)
-        await state.update_data(look_for = None)
         await message.answer("Ты парень или девушка?", reply_markup=form_btn(["парень", "девушка"]))
     else:
         await state.set_state(Form.look_for)
@@ -83,6 +88,7 @@ async def form_photo(message: Message, state: FSMContext):
 @router.message(Form.gender, F.text.casefold().in_(["парень", "девушка"]))
 async def form_gender(message: Message, state: FSMContext):
     await state.update_data(gender=message.text)
+    await state.update_data(look_for = None)
     await state.set_state(Form.circle)
     await message.answer("Расскажи о себе кружком")
 
@@ -124,16 +130,18 @@ async def form_photo(message: Message, state: FSMContext, db: DataBase):
         await message.answer_video_note(
             video_note_file_id,
         )
-        await message.answer("Имя: " + data["name"] + "\nЦель: " + data["target"] + "\nПриглашаю: " + data["look_for"] + "\nТы находишься: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"])).split(',')[-4:-1]), reply_markup=form_btn(["/form", "/go"]))
+        await message.answer("Имя: " + data["name"] + "\nЦель: " + data["target"] + "\nПриглашаю: " + data["look_for"] + "\nТы находишься: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"])).split(',')[-4:-1]))
         await message.answer("Событие будет активно в течение часа\nМы пришлем уведомление, когда его нужно будет обновить")
+        await message.answer("Все верно? Начинаем поиск?\n", reply_markup=form_btn(["/edit", "/delete", "/search"]))
     else:
         await message.answer("Твой профиль:")
 
         await message.answer_video_note(
             video_note_file_id,
         )
-        await message.answer("Имя: " + data["name"] + "\nЦель: " + data["target"] + "\nТы -- " + data["gender"] +"\nТы находишься: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"])).split(',')[-4:-1]), reply_markup=form_btn(["/form", "/go"]))
+        await message.answer("Имя: " + data["name"] + "\nЦель: " + data["target"] + "\nТы -- " + data["gender"] +"\nТы находишься: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"])).split(',')[-4:-1]))
         await message.answer("Профиль будет активен в течение часа\nМы пришлем уведомление, когда его нужно будет обновить")
+        await message.answer("Все верно? Начинаем поиск?\n", reply_markup=form_btn(["/edit", "/delete", "/search"]))
 
     if(data["username"]==None):
         await message.answer("У тебя нет юзернейма в телеграме\nДобавь его\nИначе -- тебе не смогут написать")
