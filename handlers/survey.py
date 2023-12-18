@@ -1,4 +1,4 @@
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.types import Message, location, ReplyKeyboardMarkup, KeyboardButton, user, CallbackQuery, ReplyKeyboardRemove
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -19,7 +19,8 @@ router = Router()
 
 
 @router.callback_query(lambda c: (c.data == 'create') | (c.data == 'edit'))
-async def my_form(callback: CallbackQuery, state: FSMContext):
+async def my_form(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    await bot.answer_callback_query(callback.id)
     temp = await callback.message.answer("Создаю анкету...")
     sleep(1)
     # await bot.delete_message()
@@ -29,14 +30,15 @@ async def my_form(callback: CallbackQuery, state: FSMContext):
     await state.update_data(already_saw = None)
     await state.update_data(already_seen_by = None)
     await state.update_data(active = True)
-    await state.update_data(time = datetime.now().strftime("%H:%M:%S"))
+    await state.update_data(time = datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     await state.set_state(Form.name)
     await callback.message.answer("Как тебя зовут?",
                         reply_markup=name_btn([callback.from_user.first_name, "Новое имя"]))
 
 
 @router.callback_query(lambda c: c.data == 'name')
-async def form_name(callback: CallbackQuery, state: FSMContext):
+async def form_name(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    await bot.answer_callback_query(callback.id)
     await state.update_data(name=callback.from_user.first_name)
     await state.set_state(Form.longitude)
     await callback.message.answer(
@@ -45,7 +47,8 @@ async def form_name(callback: CallbackQuery, state: FSMContext):
     )
 
 @router.callback_query(lambda c: c.data == 'other')
-async def form_name(callback: CallbackQuery, state: FSMContext):
+async def form_name(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    await bot.answer_callback_query(callback.id)
     await callback.message.answer("Введи имя, которое бы ты хотел использовать")
     @router.message(Form.name, F.text)
     async def form_longitude(message: Message, state: FSMContext):
@@ -86,7 +89,8 @@ async def form_photo(message: Message, state: FSMContext):
 
 
 @router.callback_query(lambda c: (c.data == 'создатель события') | (c.data == 'гость события'))
-async def form_target(callback: CallbackQuery, state: FSMContext):
+async def form_target(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    await bot.answer_callback_query(callback.id)
     await state.update_data(target=callback.data)
     if(callback.data == "гость события"):
         await state.set_state(Form.gender)
@@ -103,7 +107,8 @@ async def form_target(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(lambda c: (c.data == 'парень') | (c.data == 'девушка'))
-async def form_target(callback: CallbackQuery, state: FSMContext):
+async def form_target(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    await bot.answer_callback_query(callback.id)
     await state.update_data(gender=callback.data)
     await state.update_data(look_for = None)
     await state.set_state(Form.circle)
@@ -114,7 +119,8 @@ async def form_target(callback: CallbackQuery, state: FSMContext):
 #     await callback.message.answer("Выбери вариант!")
 
 @router.callback_query(lambda c: (c.data == 'парней') | (c.data == 'девушек') | (c.data == 'всех!'))
-async def form_target(callback: CallbackQuery, state: FSMContext):
+async def form_target(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    await bot.answer_callback_query(callback.id)
     await state.update_data(look_for=callback.data)
     await state.set_state(Form.circle)
     await callback.message.answer("Расскажи о себе кружком")

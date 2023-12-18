@@ -19,7 +19,7 @@ class DataBase:
                 already_saw TEXT(99999),
                 already_seen_by TEXT(99999),
                 active INTEGER(1),
-                time TEXT(8),
+                time TEXT(20),
                 name VARCHAR(20),
                 latitude REAL(10),
                 longitude REAL(10),

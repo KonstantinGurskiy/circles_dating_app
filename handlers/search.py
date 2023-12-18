@@ -13,20 +13,25 @@ from keyboards.builders import form_btn
 from utils.search_machine import closest_person, write_likes, check_match
 from utils.coord2loco import get_place
 from data.database import DataBase
+from time import sleep
 
 router = Router()
 
 @router.callback_query(lambda c: (c.data == 'search') | (c.data == 'like') | (c.data == 'dislike'))
 async def check_user(callback: CallbackQuery, state: FSMContext, db: DataBase, bot: Bot):
+    await bot.answer_callback_query(callback.id)
     df = await db.read_table()
-    if(callback.message.chat.id in df['user_id'].values and check_timer(df[df['user_id'] == callback.message.chat.id]['time'].iat[0]) and df[df['user_id'] == callback.message.chat.id]['active'].iat[0]):
+    if((callback.message.chat.id in df['user_id'].values) and check_timer(df[df['user_id'] == callback.message.chat.id]['time'].iat[0]) and df[df['user_id'] == callback.message.chat.id]['active'].iat[0]):
         await search_people(callback, state, db, bot)
     else:
+        print(check_timer(df[df['user_id'] == callback.message.chat.id]['time'].iat[0]))
         await callback.message.answer("Мы не нашли твоего аккаунта. Заполни нашу форму, пожалуйста:", reply_markup=main)
 
 
 async def search_people(callback: CallbackQuery, state: FSMContext, db: DataBase, bot: Bot):
     # await clear_database(callback, state, db)
+    await callback.message.answer("Ищу кандидата...")
+    sleep(1)
     df = await db.read_table()
     if(callback.message.chat.id in df['user_id'].values):
         df = await db.read_table()
