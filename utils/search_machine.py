@@ -4,11 +4,14 @@ from utils.check_timer import check_timer
 
 import geopy.distance
 from data.database import DataBase
+import asyncio
 
 def subtract_lists(list1, list2):
     for item in list2:
         while item in list1:
             list1.remove(item)
+    # if list1==[]:
+        # return None
     return list1
 
 async def closest_person(my_id: int, df):
@@ -20,8 +23,7 @@ async def closest_person(my_id: int, df):
     else:
         seen=[]
 
-    my_users = df[(df['user_id'] != my_id) & (df['target'] != target_value) & (~df['user_id'].isin(seen)) & (df['active']==True) & (~df['time'].apply(lambda x: check_timer(x)))]
-
+    my_users = df[(df['user_id'] != my_id) & (df['target'] != target_value) & (~df['user_id'].isin(seen)) & (df['active']==True) & (df['time'].apply(lambda x: check_timer(x)))]
 
 
     if target_value=="присоединиться к событию" and my_row['gender'].values[0]=="парень":
@@ -32,8 +34,6 @@ async def closest_person(my_id: int, df):
         my_users &= df['gender'].isin(['парень'])
     elif target_value=="создать событие" and my_row['look_for'].values[0]=="девушек":
         my_users &= df['gender'].isin(['девушка'])
-
-
 
 
 
@@ -62,10 +62,10 @@ async def write_likes(df, my_id: int):
     else:
         my_data[1] += ' ' + str(her_id)
 
-    if her_data[1]==None:
-        her_data[1] = str(my_id)
+    if her_data[2]==None:
+        her_data[2] = str(my_id)
     else:
-        her_data[1] += ' ' + str(my_id)
+        her_data[2] += ' ' + str(my_id)
     return [list(my_data), list(her_data)]
 
 
@@ -89,6 +89,11 @@ async def check_match(df, my_id: int, db):
         liked = subtract_lists(liked, matches)
         my_data[1] = " ".join(map(str, likes))
         my_data[2] = " ".join(map(str, liked))
+        if my_data[1] == "":
+            my_data[1]=None
+        if my_data[2] == "":
+            my_data[2]=None
+        my_data[5]=False
         return matches, my_data
     else:
         return None, None

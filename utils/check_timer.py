@@ -8,5 +8,5 @@ def check_timer(current_time_str):
     # Get the current time
     current_time = datetime.now().time()
     # Compare the times
-    return new_time.time() < current_time
+    return new_time.time() > current_time
 

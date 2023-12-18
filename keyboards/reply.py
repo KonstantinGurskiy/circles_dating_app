@@ -1,13 +1,11 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-main = ReplyKeyboardMarkup(
-    keyboard=[
+main = InlineKeyboardMarkup(
+    inline_keyboard=[
         [
-            KeyboardButton(text="/create"),
+            InlineKeyboardButton(text="Создать", callback_data = 'create'),
             # KeyboardButton(text="/go")
         ]
     ],
-    resize_keyboard=True,
-    one_time_keyboard=True
 
 )
