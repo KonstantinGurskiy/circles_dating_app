@@ -18,6 +18,7 @@ class DataBase:
                 liked TEXT(99999),
                 already_saw TEXT(99999),
                 already_seen_by TEXT(99999),
+                waiting INTEGER(1),
                 active INTEGER(1),
                 time TEXT(20),
                 name VARCHAR(20),
@@ -42,7 +43,7 @@ class DataBase:
             existing_record = await cursor.fetchone()
             if existing_record:
                 # Если запись существует, обновляем её
-                await cursor.execute("UPDATE users SET user_id=?, likes=?, liked=?, already_saw=?, already_seen_by=?, active=?, time=?, name=?, latitude=?, longitude=?, target=?, gender=?, look_for=?, circle=?, username=? WHERE user_id="+ str(data[0]), data)
+                await cursor.execute("UPDATE users SET user_id=?, likes=?, liked=?, already_saw=?, already_seen_by=?, waiting=?, active=?, time=?, name=?, latitude=?, longitude=?, target=?, gender=?, look_for=?, circle=?, username=? WHERE user_id="+ str(data[0]), data)
             else:
                 # Если запись не существует, вставляем новую запись
                 await cursor.execute(
@@ -53,6 +54,7 @@ class DataBase:
                     liked,
                     already_saw,
                     already_seen_by,
+                    waiting,
                     active,
                     time,
                     name,
@@ -63,7 +65,7 @@ class DataBase:
                     look_for,
                     circle,
                     username
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 data
             )
@@ -88,6 +90,6 @@ class DataBase:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM users")
             rows = [list(row) for row in await cursor.fetchall()]
-            column_names = ['id', 'user_id', 'likes', 'liked', 'already_saw', 'already_seen_by', 'active', 'time', 'name', 'latitude', 'longitude', 'target', 'gender', 'look_for', 'circle', 'username']
+            column_names = ['id', 'user_id', 'likes', 'liked', 'already_saw', 'already_seen_by', 'waiting', 'active', 'time', 'name', 'latitude', 'longitude', 'target', 'gender', 'look_for', 'circle', 'username']
             df = pd.DataFrame(rows, columns=column_names)
             return df

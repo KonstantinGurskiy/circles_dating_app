@@ -14,6 +14,8 @@ def subtract_lists(list1, list2):
         # return None
     return list1
 
+
+
 async def closest_person(my_id: int, df):
     my_row = df[df['user_id'] == my_id]
     target_value = str(my_row['target'].values[0])
@@ -26,16 +28,22 @@ async def closest_person(my_id: int, df):
     my_users = df[(df['user_id'] != my_id) & (df['target'] != target_value) & (~df['user_id'].isin(seen)) & (df['active']==True) & (df['time'].apply(lambda x: check_timer(x)))]
 
 
-    if target_value=="присоединиться к событию" and my_row['gender'].values[0]=="парень":
-        my_users &= df['look_for'].isin(['всех!', 'парней'])
-    elif target_value=="присоединиться к событию" and my_row['gender'].values[0]=="девушка":
-        my_users &= df['look_for'].isin(['всех!', 'девушек'])
-    elif target_value=="создать событие" and my_row['look_for'].values[0]=="парней":
-        my_users &= df['gender'].isin(['парень'])
-    elif target_value=="создать событие" and my_row['look_for'].values[0]=="девушек":
-        my_users &= df['gender'].isin(['девушка'])
+    if target_value=="гость события" and my_row['gender'].values[0]=="парень":
+        my_users = my_users[my_users['look_for'].isin(['всех!', 'парней'])]
+    elif target_value=="гость события" and my_row['gender'].values[0]=="девушка":
+        my_users = my_users[my_users['look_for'].isin(['всех!', 'девушек'])]
+    elif target_value=="создатель события" and my_row['look_for'].values[0]=="парней":
+        my_users = my_users[my_users['gender'].isin(['парень'])]
+    elif target_value=="создатель события" and my_row['look_for'].values[0]=="девушек":
+        my_users = my_users[my_users['gender'].isin(['девушка'])]
 
 
+    if target_value == 'создатель события':
+        if my_row['liked'].values[0]!=None:
+            liked = [int(x) for x in my_row['liked'].values[0].split(' ')]
+            my_users = my_users[df['user_id'].isin(liked)]
+        else:
+            my_users = pd.DataFrame([])
 
     coords1 = (df.loc[df['user_id'] == my_id, 'latitude'].values[0], df.loc[df['user_id'] == my_id, 'longitude'].values[0])
     min_distance = 99999
@@ -94,6 +102,7 @@ async def check_match(df, my_id: int, db):
         if my_data[2] == "":
             my_data[2]=None
         my_data[5]=False
+        my_data[6]=False
         return matches, my_data
     else:
         return None, None

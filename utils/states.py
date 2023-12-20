@@ -16,3 +16,4 @@ class Form(StatesGroup):
     already_saw = State()
     username = State()
     active = State()
+    waiting = State()

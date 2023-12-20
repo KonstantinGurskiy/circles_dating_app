@@ -14,7 +14,10 @@ from data.database import DataBase
 from utils.states import Form
 from utils.city import check
 from utils.coord2loco import get_place
-from keyboards.inline import name_btn, target_btn, look_for_btn, gender_btn, searching_start_btn
+from keyboards.inline import name_btn, target_btn, look_for_btn, gender_btn, searching_start_btn, check_profile_btn, like_btn
+from utils.search_machine import closest_person
+from utils.check_timer import check_timer
+
 router = Router()
 
 
@@ -29,6 +32,7 @@ async def my_form(callback: CallbackQuery, state: FSMContext, bot: Bot):
     await state.update_data(likes = None)
     await state.update_data(already_saw = None)
     await state.update_data(already_seen_by = None)
+    await state.update_data(waiting = False)
     await state.update_data(active = True)
     await state.update_data(time = datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     await state.set_state(Form.name)
@@ -42,7 +46,7 @@ async def form_name(callback: CallbackQuery, state: FSMContext, bot: Bot):
     await state.update_data(name=callback.from_user.first_name)
     await state.set_state(Form.longitude)
     await callback.message.answer(
-            "Где ты находишься?",
+            "Где ты находишься?\nОтправь геопозицию\nКнопка⬇",
             reply_markup=form_loc_req(["отправить геопозицию"])
     )
 
@@ -56,7 +60,7 @@ async def form_name(callback: CallbackQuery, state: FSMContext, bot: Bot):
         await state.set_state(Form.longitude)
 
         await message.answer(
-                "Где ты находишься?",
+                "Где ты находишься?\nОтправь геопозицию\nКнопка⬇️",
                 reply_markup=form_loc_req(["отправить геопозицию"])
     )
     @router.message(Form.longitude, ~F.location)
@@ -127,7 +131,7 @@ async def form_target(callback: CallbackQuery, state: FSMContext, bot: Bot):
 
 
 @router.message(Form.circle, F.video_note)
-async def form_photo(message: Message, state: FSMContext, db: DataBase):
+async def form_photo(message: Message, state: FSMContext, db: DataBase, bot: Bot):
     video_note_file_id = message.video_note.file_id
     await state.update_data(circle=video_note_file_id)
     await state.update_data(username = message.from_user.username)
@@ -150,8 +154,9 @@ async def form_photo(message: Message, state: FSMContext, db: DataBase):
             video_note_file_id,
         )
         await message.answer("Имя: " + data["name"] + "\nТы -- " + data["target"] + "\nПриглашаю: " + data["look_for"] + "\nТы находишься: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"])).split(',')[-4:-1]))
-        await message.answer("Событие будет активно в течение часа\nМы пришлем уведомление, когда его нужно будет обновить")
-        await message.answer("Все верно? Начинаем поиск?\n", reply_markup=searching_start_btn(["Изменить", "Удалить", "Искать"]))
+        # await message.answer("Событие будет активно в течение часа\nМы пришлем уведомление, когда его нужно будет обновить")
+        await message.answer("Событие будет активно в течение часа\n")
+        await message.answer("Всё верно?\n", reply_markup=check_profile_btn(["Изменить запрос", "Удалить запрос"]))
     else:
         await message.answer("Твой профиль:")
 
@@ -159,11 +164,86 @@ async def form_photo(message: Message, state: FSMContext, db: DataBase):
             video_note_file_id,
         )
         await message.answer("Имя: " + data["name"] + "\nТы -- " + data["target"] + "\nТы -- " + data["gender"] +"\nТы находишься: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"])).split(',')[-4:-1]))
-        await message.answer("Профиль будет активен в течение часа\nМы пришлем уведомление, когда его нужно будет обновить")
-        await message.answer("Все верно? Начинаем поиск?\n", reply_markup=searching_start_btn(["Изменить", "Удалить", "Искать"]))
+        # await message.answer("Профиль будет активен в течение часа\nМы пришлем уведомление, когда его нужно будет обновить")
+        await message.answer("Профиль будет активен в течение часа\n")
+        await message.answer("Всё верно?\n", reply_markup=check_profile_btn(["Изменить запрос", "Удалить запрос"]))
 
     if(data["username"]==None):
         await message.answer("У тебя нет юзернейма в телеграме\nДобавь его\nИначе -- тебе не смогут написать")
+
+
+
+
+
+
+
+
+
+
+
+###Отправим сообщение о новом событии ждущим
+    df = await db.read_table()
+    if(data["gender"]==None):
+        guests_list = df[(df['gender'].values!=None) & (df['waiting'].values==True) & (df['time'].apply(lambda x: check_timer(x))) & (df['active']==True)]
+        if(data["look_for"]=="парней"):
+            guests_list &= guests_list['gender'].isin(['парень'])
+        elif(data["look_for"]=="девушек"):
+            guests_list &= guests_list['gender'].isin(['девушка'])
+        for item in guests_list['user_id'].values:
+            await bot.send_message(item, "Новое событие! Посмотри:")
+            await bot.send_video_note(item, video_note_file_id)
+            await bot.send_message(item, "Имя: " + data["name"] + "\nЦель: " + data["target"] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", contr_person["latitude"], data["longitude"])).split(',')[-4:-1]), reply_markup=like_btn(["нравится ❤️", "следующий 👎"]))
+
+
+
+
+
+
+
+    await message.answer("Ищу кандидата...\n")
+    sleep(3)
+
+###приколхозим отправку первого кружка
+    df = await db.read_table()
+    print(df)
+    contr_person = await closest_person(message.from_user.id, df)
+    changed_row = df[df['user_id'] == message.from_user.id].iloc[0].values.flatten().tolist()[1:]
+    if isinstance(contr_person, int):
+        changed_row[0] = str(changed_row[0])
+        changed_row[5] = str(1)
+        changed_row[6] = str(changed_row[6])
+        await db.insert(changed_row)
+        await message.answer("Пользователи кончились", reply_markup=check_profile_btn(["Изменить запрос", "Удалить запрос"]))
+    else:
+        changed_opponent_row = df[df['user_id'] == int(contr_person['user_id'])].iloc[0].values.flatten().tolist()[1:]
+        await message.answer_video_note(
+        contr_person["circle"],
+        )
+        await message.answer("Имя: " + contr_person["name"] + "\nЦель: " + contr_person["target"] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", contr_person["latitude"], contr_person["longitude"])).split(',')[-4:-1]), reply_markup=like_btn(["нравится ❤️", "следующий 👎"]))
+        if changed_row[3]==None:
+            changed_row[3] = str(contr_person['user_id'])
+        else:
+            changed_row[3] = str(changed_row[3])+ ' ' + str(contr_person['user_id'])
+
+        changed_row[0] = str(changed_row[0])
+        changed_row[5] = str(changed_row[5])
+        changed_row[6] = str(changed_row[6])
+        await db.insert(changed_row)
+
+
+
+        if changed_opponent_row[4]==None:
+            changed_opponent_row[4] = str(message.from_user.id)
+        else:
+            changed_opponent_row[4] = str(changed_opponent_row[4])+ ' ' + str(message.from_user.id)
+
+        changed_opponent_row[0] = str(changed_opponent_row[0])
+        changed_opponent_row[5] = str(changed_opponent_row[5])
+        changed_opponent_row[6] = str(changed_opponent_row[6])
+        await db.insert(changed_opponent_row)
+
+
+
 
 
 

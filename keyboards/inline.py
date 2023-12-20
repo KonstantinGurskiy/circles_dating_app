@@ -73,6 +73,19 @@ def searching_start_btn(txt: str | list):
 
     )
 
+def check_profile_btn(txt: str | list):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=txt[0], callback_data = 'edit')
+            ],
+            [
+                InlineKeyboardButton(text=txt[1], callback_data = 'delete')
+            ],
+        ],
+
+    )
+
 
 
 def like_btn(txt: str | list):
