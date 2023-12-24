@@ -61,13 +61,7 @@ def searching_start_btn(txt: str | list):
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text=txt[0], callback_data = 'edit')
-            ],
-            [
-                InlineKeyboardButton(text=txt[1], callback_data = 'delete')
-            ],
-            [
-                InlineKeyboardButton(text=txt[2], callback_data = 'search')
+                InlineKeyboardButton(text=txt[0], callback_data = 'search')
             ]
         ],
 

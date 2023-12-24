@@ -17,3 +17,4 @@ class Form(StatesGroup):
     username = State()
     active = State()
     waiting = State()
+    msgs_to_delete = State()

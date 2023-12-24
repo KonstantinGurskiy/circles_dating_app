@@ -5,6 +5,11 @@ from utils.check_timer import check_timer
 import geopy.distance
 from data.database import DataBase
 import asyncio
+from aiogram import Router, F, Bot
+from aiogram.types import Message, user, CallbackQuery
+from asyncio import sleep
+from aiogram.enums import ParseMode
+from utils.clean_chat import delete_msgs
 
 def subtract_lists(list1, list2):
     for item in list2:
@@ -79,6 +84,7 @@ async def write_likes(df, my_id: int):
 
 async def check_match(df, my_id: int, db):
     my_data = df[df['user_id'] == my_id].values[0][1:]
+    print(my_data)
     my_data[0] = str(my_data[0])
     if my_data[1]!=None:
         likes = my_data[1].split(' ')
@@ -92,6 +98,9 @@ async def check_match(df, my_id: int, db):
         return None, None
 
     matches = list(set(likes) & set(liked))
+    print(likes)
+    print(liked)
+    print(matches)
     if matches != []:
         likes = subtract_lists(likes, matches)
         liked = subtract_lists(liked, matches)
@@ -108,4 +117,43 @@ async def check_match(df, my_id: int, db):
         return None, None
 
 
+async def notify_about_match(matches, df, clb, st, db, bot):
+    await delete_msgs(clb.message.chat.id, await db.read_table(), bot, db)
+    for match in matches:
+        match = int(match)
+        await delete_msgs(match, await db.read_table(), bot, db)
+        print("Сообщаю пользователю о мэтче")
+        match_data = df[df['user_id'] == match].iloc[0].values.flatten().tolist()[1:]
+        match_data[0] = str(match_data[0])
+        match_data[5]=False
+        match_data[6]=False
+        await db.insert(match_data)
 
+
+        my_id = int(clb.message.chat.id)
+        print("Сообщаю пользователю о мэтче")
+        my_row = df[df['user_id'] == my_id].iloc[0].values.flatten().tolist()[1:]
+        my_row[0] = str(my_row[0])
+        my_row[5]=False
+        my_row[6]=False
+        await db.insert(my_row)
+
+
+
+        username = df[df['user_id'] == match]['username'].iat[0]
+        await clb.message.answer("Соединяю...")
+        await bot.send_chat_action(clb.message.chat.id, action="typing")
+        await sleep(1)
+        await clb.message.answer_video_note(df[df['user_id'] == match]['circle'].iat[0])
+        await clb.message.answer(df[df['user_id'] == match]['name'].iat[0])
+        await bot.send_location(clb.message.chat.id, df[df['user_id'] == match]['latitude'].iat[0], df[df['user_id'] == match]['longitude'].iat[0])
+        await clb.message.answer(f"<a href='t.me/{username}'>It's a match!</a>", parse_mode=ParseMode.HTML)
+
+
+        await bot.send_message(match, "Соединяю...")
+        await bot.send_chat_action(clb.message.chat.id, action="typing")
+        await sleep(1)
+        await bot.send_message(match, df[df['user_id'] == clb.message.chat.id]['name'].iat[0])
+        await bot.send_video_note(match ,df[df['user_id'] == clb.message.chat.id]['circle'].iat[0])
+        await bot.send_location(match, df[df['user_id'] == clb.message.chat.id]['latitude'].iat[0], df[df['user_id'] == clb.message.chat.id]['longitude'].iat[0])
+        await bot.send_message(match, f"<a href='t.me/{df[df['user_id'] == clb.message.chat.id]['username'].iat[0]}'>It's a match!</a>", parse_mode=ParseMode.HTML)

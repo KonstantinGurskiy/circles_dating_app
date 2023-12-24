@@ -22,7 +22,8 @@ async def main():
         handlers.start.router,
         handlers.survey.router,
         handlers.search.router,
-        handlers.delete.router
+        handlers.delete.router,
+        handlers.show_mine.router
     )
 
     await bot.delete_webhook(drop_pending_updates=True)

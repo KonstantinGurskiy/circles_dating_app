@@ -9,7 +9,6 @@ router = Router()
 
 @router.message(CommandStart())
 async def start(message: Message, db: DataBase):
-    print(db.name)
     await message.answer("""
 
         Добро пожаловать в наш бот "КРУГИ ДЛЯ ЗНАКОМСТВ"!
