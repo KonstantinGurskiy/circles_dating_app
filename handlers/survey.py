@@ -18,6 +18,7 @@ from keyboards.inline import name_btn, target_btn, look_for_btn, gender_btn, sea
 from utils.search_machine import closest_person
 from utils.check_timer import check_timer
 from utils.clean_chat import insert_new_msgs_to_db, delete_msgs
+import geopy.distance
 
 router = Router()
 msgs = []
@@ -46,8 +47,11 @@ async def form_name(callback: CallbackQuery, state: FSMContext, bot: Bot):
     await state.update_data(name=callback.from_user.first_name)
     await state.set_state(Form.longitude)
     msgs.append(await callback.message.answer(
-            "Где ты находишься?\nОтправь геопозицию\nКнопка⬇",
-            reply_markup=form_loc_req(["отправить геопозицию"])
+                """Для того, чтобы бот подобрал ближайших к вам пользователей, необходимо указать вашу геолокацию.
+Эта информация конфиденциальна.
+Ваше местоположение видите только вы.
+Кнопка отправки в меню клавиатуры ⬇⬇⬇️️""",
+                reply_markup=form_loc_req(["📍отправить геопозицию📍"])
     ))
 
 @router.callback_query(lambda c: c.data == 'other')
@@ -59,9 +63,12 @@ async def form_name(callback: CallbackQuery, state: FSMContext, bot: Bot):
         await state.update_data(name=message.text)
         await state.set_state(Form.longitude)
 
-        msgs.append(await message.answer(
-                "Где ты находишься?\nОтправь геопозицию\nКнопка⬇️",
-                reply_markup=form_loc_req(["отправить геопозицию"])
+        msgs.append(await callback.message.answer(
+                """Для того, чтобы бот подобрал ближайших к вам пользователей, необходимо указать вашу геолокацию.
+Эта информация конфиденциальна.
+Ваше местоположение видите только вы.
+Кнопка отправки в меню клавиатуры ⬇⬇⬇️️""",
+                reply_markup=form_loc_req(["📍отправить геопозицию📍"])
     ))
     @router.message(Form.longitude, ~F.location)
     async def form_photo(message: Message, state: FSMContext):
@@ -77,7 +84,10 @@ async def form_longitude(message: Message, state: FSMContext):
     await state.update_data(longitude=lon)
 
     msg = await message.answer("Записываю...", reply_markup=ReplyKeyboardRemove())
-    await msg.delete()
+    try:
+        await msg.delete()
+    except:
+        print("!!!")
 
 
     await state.set_state(Form.target)
@@ -151,7 +161,10 @@ async def form_photo(message: Message, state: FSMContext, db: DataBase, bot: Bot
 
         global msgs
         for msg in msgs:
-            await msg.delete()
+            try:
+                await msg.delete()
+            except:
+                print("!!!")
 
         msgs=[]
 
@@ -212,7 +225,7 @@ async def form_photo(message: Message, state: FSMContext, db: DataBase, bot: Bot
                 print("Я отправил событие")
                 temp.append(await bot.send_message(item, "Новое событие! Посмотри:"))
                 temp.append(await bot.send_video_note(item, video_note_file_id))
-                temp.append(await bot.send_message(item, "Имя: " + data["name"] + "\nЦель: " + data["target"] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"])).split(',')[-4:-1]), reply_markup=like_btn(["нравится ❤️", "следующий 👎"])))
+                temp.append(await bot.send_message(item, "Имя: " + data["name"] + "\nЦель: " + data["target"] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", data["latitude"], data["longitude"])).split(',')[-4:-1]) + "\nРасстояние до тебя: " + str(round(geopy.distance.geodesic((data["latitude"], data["longitude"]), (changed_row[10], changed_row[11])).km, 1)) + " км", reply_markup=like_btn(["нравится ❤️", "следующий 👎"])))
                 await insert_new_msgs_to_db(item, temp, await db.read_table(), db)
 
 
@@ -222,7 +235,10 @@ async def form_photo(message: Message, state: FSMContext, db: DataBase, bot: Bot
         # await bot.send_chat_action(message.from_user.id, action="typing")
         await sleep(2)
         for msg in msgs:
-            await msg.delete()
+            try:
+                await msg.delete()
+            except:
+                print("!!!")
 
         msgs=[]
 
@@ -246,7 +262,7 @@ async def form_photo(message: Message, state: FSMContext, db: DataBase, bot: Bot
             msgs.append(await message.answer_video_note(
             contr_person["circle"],
             ))
-            msgs.append(await message.answer("Имя: " + contr_person["name"] + "\nЦель: " + contr_person["target"] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", contr_person["latitude"], contr_person["longitude"])).split(',')[-4:-1]), reply_markup=like_btn(["нравится ❤️", "следующий 👎"])))
+            msgs.append(await message.answer("Имя: " + contr_person["name"] + "\nЦель: " + contr_person["target"] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", contr_person["latitude"], contr_person["longitude"])).split(',')[-4:-1]) + "\nРасстояние до тебя: " + str(round(geopy.distance.geodesic((data["latitude"], data["longitude"]), (contr_person[10], contr_person[11])).km, 1)) + " км", reply_markup=like_btn(["нравится ❤️", "следующий 👎"])))
             if changed_row[3]==None:
                 changed_row[3] = str(contr_person['user_id'])
             else:

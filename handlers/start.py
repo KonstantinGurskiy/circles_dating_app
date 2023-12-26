@@ -5,10 +5,16 @@ from aiogram.filters import CommandStart
 from keyboards.reply import main
 from data.database import DataBase
 
+from utils.statistics import how_much
+
+from asyncio import sleep
+
 router = Router()
 
 @router.message(CommandStart())
 async def start(message: Message, db: DataBase):
+    await message.answer("Сейчас ботом пользуются: " + await how_much(db))
+    await sleep(1)
     await message.answer("""
 
         Добро пожаловать в наш бот "КРУГИ ДЛЯ ЗНАКОМСТВ"!

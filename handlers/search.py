@@ -15,6 +15,7 @@ from utils.coord2loco import get_place
 from data.database import DataBase
 from asyncio import sleep
 from utils.clean_chat import insert_new_msgs_to_db, delete_msgs
+import geopy.distance
 
 
 router = Router()
@@ -60,7 +61,7 @@ async def search_people(callback: CallbackQuery, state: FSMContext, db: DataBase
                 temp=[]
                 temp.append(await bot.send_message(int(likes_to_write[1][0]), "Новое нравится❤! Посмотри:"))
                 temp.append(await bot.send_video_note(int(likes_to_write[1][0]), likes_to_write[0][14]))
-                temp.append(await bot.send_message(int(likes_to_write[1][0]), "Имя: " + likes_to_write[0][8] + "\nЦель: " + likes_to_write[0][11] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", likes_to_write[0][9], likes_to_write[0][10])).split(',')[-4:-1]), reply_markup=like_btn(["нравится ❤️", "следующий 👎"])))
+                temp.append(await bot.send_message(int(likes_to_write[1][0]), "Имя: " + likes_to_write[0][8] + "\nЦель: " + likes_to_write[0][11] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", likes_to_write[0][9], likes_to_write[0][10])).split(',')[-4:-1]) + "\nРасстояние до тебя: " + str(round(geopy.distance.geodesic((likes_to_write[1][10], likes_to_write[1][11]), (likes_to_write[0][10], likes_to_write[0][11])).km, 1)) + " км", reply_markup=like_btn(["нравится ❤️", "следующий 👎"])))
                 print("Я отправил лайк")
                 await insert_new_msgs_to_db(int(likes_to_write[1][0]), temp, await db.read_table(), db)
 
@@ -87,7 +88,7 @@ async def search_people(callback: CallbackQuery, state: FSMContext, db: DataBase
                 changed_opponent_row = df[df['user_id'] == int(contr_person['user_id'])].iloc[0].values.flatten().tolist()[1:]
                 temp = []
                 temp.append(await callback.message.answer_video_note(contr_person["circle"]))
-                temp.append(await callback.message.answer("Имя: " + contr_person["name"] + "\nЦель: " + contr_person["target"] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", contr_person["latitude"], contr_person["longitude"])).split(',')[-4:-1]), reply_markup=like_btn(["нравится ❤️", "следующий 👎"])))
+                temp.append(await callback.message.answer("Имя: " + contr_person["name"] + "\nЦель: " + contr_person["target"] + "\nОткуда: " + ','.join(str(await get_place("073e8a55524f48048a75d1ba0dc83bd6", contr_person["latitude"], contr_person["longitude"])).split(',')[-4:-1]) + "\nРасстояние до тебя: " + str(round(geopy.distance.geodesic((changed_opponent_row[10], changed_opponent_row[11]), (contr_person[10], contr_person[11])).km, 1)) + " км", reply_markup=like_btn(["нравится ❤️", "следующий 👎"])))
                 await insert_new_msgs_to_db(callback.message.chat.id, temp, await db.read_table(), db)
                 if changed_row[3]==None:
                     changed_row[3] = str(contr_person['user_id'])

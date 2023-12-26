@@ -11,7 +11,7 @@ from asyncio import sleep
 from aiogram.enums import ParseMode
 from utils.clean_chat import delete_msgs
 
-def subtract_lists(list1, list2):
+async def subtract_lists(list1, list2):
     for item in list2:
         while item in list1:
             list1.remove(item)
@@ -102,8 +102,8 @@ async def check_match(df, my_id: int, db):
     print(liked)
     print(matches)
     if matches != []:
-        likes = subtract_lists(likes, matches)
-        liked = subtract_lists(liked, matches)
+        likes = await subtract_lists(likes, matches)
+        liked = await subtract_lists(liked, matches)
         my_data[1] = " ".join(map(str, likes))
         my_data[2] = " ".join(map(str, liked))
         if my_data[1] == "":
@@ -145,15 +145,15 @@ async def notify_about_match(matches, df, clb, st, db, bot):
         await bot.send_chat_action(clb.message.chat.id, action="typing")
         await sleep(1)
         await clb.message.answer_video_note(df[df['user_id'] == match]['circle'].iat[0])
-        await clb.message.answer(df[df['user_id'] == match]['name'].iat[0])
-        await bot.send_location(clb.message.chat.id, df[df['user_id'] == match]['latitude'].iat[0], df[df['user_id'] == match]['longitude'].iat[0])
+        await clb.message.answer(df[df['user_id'] == match]['name'].iat[0] + "\nРасстояние до тебя: " + str(round(geopy.distance.geodesic((my_row[10], my_row[11]), (match[10], match[11])).km, 1)) + " км")
+        # await bot.send_location(clb.message.chat.id, df[df['user_id'] == match]['latitude'].iat[0], df[df['user_id'] == match]['longitude'].iat[0])
         await clb.message.answer(f"<a href='t.me/{username}'>It's a match!</a>", parse_mode=ParseMode.HTML)
 
 
         await bot.send_message(match, "Соединяю...")
         await bot.send_chat_action(clb.message.chat.id, action="typing")
         await sleep(1)
-        await bot.send_message(match, df[df['user_id'] == clb.message.chat.id]['name'].iat[0])
+        await bot.send_message(match, df[df['user_id'] == clb.message.chat.id]['name'].iat[0] + "\nРасстояние до тебя: " + str(round(geopy.distance.geodesic((my_row[10], my_row[11]), (match[10], match[11])).km, 1)) + " км")
         await bot.send_video_note(match ,df[df['user_id'] == clb.message.chat.id]['circle'].iat[0])
-        await bot.send_location(match, df[df['user_id'] == clb.message.chat.id]['latitude'].iat[0], df[df['user_id'] == clb.message.chat.id]['longitude'].iat[0])
+        # await bot.send_location(match, df[df['user_id'] == clb.message.chat.id]['latitude'].iat[0], df[df['user_id'] == clb.message.chat.id]['longitude'].iat[0])
         await bot.send_message(match, f"<a href='t.me/{df[df['user_id'] == clb.message.chat.id]['username'].iat[0]}'>It's a match!</a>", parse_mode=ParseMode.HTML)

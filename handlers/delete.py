@@ -11,6 +11,7 @@ from asyncio import sleep
 
 router = Router()
 db = DataBase("users_db.db", "users")
+temp=[]
 
 @router.message(Command("delete"))
 async def deletion(message: Message, state: FSMContext, db: DataBase, bot: Bot):
@@ -19,7 +20,7 @@ async def deletion(message: Message, state: FSMContext, db: DataBase, bot: Bot):
 @router.callback_query(lambda c: (c.data == 'no'))
 async def deleteno(callback: CallbackQuery, state: FSMContext, bot: Bot):
     await bot.answer_callback_query(callback.id)
-    temp.append(await callback.message.answer("Тогда продолжим поиск или хочешь отредактировать анкету?", reply_markup=searching_start_btn(["Изменить", "Удалить", "Искать"])))
+    temp.append(await callback.message.answer("Тогда продолжим поиск или хочешь отредактировать анкету?", reply_markup=searching_start_btn(["Продолжить поиск"])))
     await insert_new_msgs_to_db(callback.message.chat.id, temp, await db.read_table(), db)
 
 @router.callback_query(lambda c: (c.data == 'yes'))
@@ -29,4 +30,10 @@ async def deleteyes(callback: CallbackQuery, state: FSMContext, bot: Bot):
     await sleep(1)
     await db.delete_user(callback.from_user.id)
     temp.append(await callback.message.answer("Анкета удалена. See you again!", reply_markup=main))
-    await insert_new_msgs_to_db(callback.message.chat.id, temp, await db.read_table(), db)
+    # await insert_new_msgs_to_db(callback.message.chat.id, temp, await db.read_table(), db)
+    await sleep(2)
+    for msg in temp:
+        try:
+            await msg.delete()
+        except:
+            print("!!!")
